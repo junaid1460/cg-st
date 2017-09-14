@@ -1,0 +1,229 @@
+<html>
+<head>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>
+    ST
+  </title>
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            outline:0;
+        }
+     
+    </style>
+    <script src="p5.min.js"></script>
+   
+</head>
+<body>
+    <div class="toolbar">
+        <button class="push" id="push">Push</button>
+        
+        <button class="push" id="pop">pop</button>
+    </div>
+    <style>
+        .toolbar{
+            height:50px;
+            position: fixed;
+            display: flex;
+            top: 0;
+            left: 0;
+            right: 0;
+            background:#607d8b;
+            justify-content: center;
+        }
+        .content,.push{
+            margin: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 2px;
+            border:none;
+            padding-left: 10px: white;
+            
+            box-shadow: 0 0 4px black;
+        }
+        .push{
+            padding: 0 10px 0 10px;
+        : black;
+            background: white;
+            transition: 1s ease all;
+        }
+        .push:active{
+            background: rgba(255,255,255,0.6);
+            box-shadow: 0 0 2px black;
+        }
+    </style>
+     <script>
+           var stackSize = 10;//parseInt( prompt("enter the stack size(max:10)"));
+           stackSize = stackSize>10?10:stackSize;
+        function StackElement(data,w,h){
+            this._data = data;
+            this.x = 0;
+            this.y = 0;
+            this.width = w;
+            this.height = h;
+            this.scale = 0.01;
+           
+            
+                this.r = 256;
+                this.g = 256;
+                this.b = 256;
+           
+            this.draw = function(){
+                fill(this.r,this.g,this.b);
+                rect(this.x,this.y,this.width,this.height);
+                fill(255,255,255);
+                 stroke(this.r,this.g,this.b);
+                text(data,this.x+(this.width)/2-data.length*4,this.y+(this.height)/2+4)
+              
+            }
+            this.setXY = function(x,y){
+                this.x = x;
+                this.y = y;
+            }
+            this.log = function(){
+                console.log("width",this.width,"height",this.height,"x",this.x,"y",this.y);
+            }
+            this.randomColor = function(){
+                 this.r = parseInt( Math.random()*100%256);
+                this.g = parseInt(Math.random()*100%256);
+                this.b = parseInt(Math.random()*100%256);
+            }
+            
+            
+        }
+        //stack
+        function Stack(x,y,w,elmheight,size){
+            this.elms = new Array();
+            this.popped = new Array();
+            this.x = x;
+            this.y = y;
+            this.size = size;
+            this.width = w;
+            this.padding = 15;
+            this.elementGap = 3;
+            this.elementHeight =elmheight;
+            this.height = this.padding*3+(this.size+1)*this.elementGap+this.size*this.elementHeight;
+            this.overflow = 0;
+            this.underflow = 0;
+            this.red = false;
+            this.currentTop = this.y + this.height -this.padding-this.elementHeight;
+            this.currentLeft = this.x + this.padding;
+            this.addElement = function(){
+                this.currentTop -= (this.elementHeight+this.elementGap);
+            }
+
+            this.removeElement = function(){
+                this.currentTop += (this.elementHeight+this.elementGap*2);
+            }
+
+            this.draw = function(x,y,w,h){
+                if(this.red){
+                 
+             fill(255,10,16);
+             
+             stroke(255,10,16);
+             }else{
+             fill(200,200,200);
+             stroke(200,200,200);
+             }
+
+             rect(this.x,this.y,this.width,this.height);
+             for(i=0;i<this.elms.length;i++){
+                this.elms[i].x = this.elms[i].x<this.currentLeft?this.elms[i].x+15:this.currentLeft;
+                 this.elms[i].draw();
+             }
+
+             for(i=0;i<this.popped.length;i++){
+                 this.popped[i].y-=15;
+                 this.popped[i].draw();
+             }
+             stroke(255,0,0);
+             fill(255,0,0)
+             if(this.overflow>0){
+                 text("Stack overflow",this.x,this.y - 10);
+                 this.overflow-=2;
+                 this.red = true;
+             }
+             else{
+                 this.red=false;
+
+             
+             if(this.underflow>0){
+                text("Stack underflow",this.x,this.y +this.height+15);
+                this.underflow-=2;
+                this.red = true;
+             }else{
+                 this.red=false;
+             }
+             }
+             
+            }
+
+            this.push = function(elm){
+                if(this.elms.length<size){
+                elm.y = this.currentTop;
+                elm.width = (this.width - 2*this.padding);
+                elm.height = this.elementHeight;
+                this.currentTop -=this.elementGap;
+                elm.log();
+                elm.randomColor();
+                this.elms.push(elm);
+                this.addElement();
+                }else{
+                    this.overflow = 100;
+                }
+            }
+            this.pop = function(){
+                if(this.elms.length>0){
+                  this.removeElement()
+                  this.popped.push( this.elms.pop());
+                }else{
+                    this.underflow = 100;
+                }
+                for(i=0;i<this.popped.length;i++){
+                 if(this.popped[i].y<=-150){
+                    this.popped.splice(i,1);
+                 }
+             }
+            }
+        }
+        var stackWidth = 200;
+        var stackHeight = 350;
+        var offsetX = 0;
+        var offsetY = -10;
+        var stackX;
+        var stackY;
+        var width;
+        var height;
+        var stack ;
+        var el;
+       
+        
+        function setup(){
+            width = window.innerWidth;
+            height = window.innerHeight;
+            createCanvas(width,height);
+           // stackHeight = stackSize*50;
+            stackX = width/2-stackWidth/2 + offsetX;
+            stackY = height/2-stackHeight/2 + offsetY;
+            el = new StackElement("aba",100,50)
+            el.setXY(23,45)
+            stack = new Stack(stackX,stackY,stackWidth,30,stackSize);
+        }
+        function draw(){
+             clear();
+             stack.draw();
+        }
+        var btn = document.getElementById('push');
+        var pop = document.getElementById('pop');
+        btn.onclick = function(e){
+                stack.push(new StackElement(parseInt(Math.random()*100)+"",0,0));
+        }
+        pop.onclick = function(e){
+            stack.pop();
+        }
+
+    </script>
+</body>
+</html>

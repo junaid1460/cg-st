@@ -1,0 +1,200 @@
+<html>
+<head>
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            outline:0;
+        }
+     
+    </style>
+    <script src="p5.min.js"></script>
+   
+</head>
+<body>
+    <div class="toolbar">
+        <button class="push" id="push">Push</button>
+        
+        <button class="push" id="pop">pop</button>
+    </div>
+    <style>
+        .toolbar{
+            height:50px;
+            position: fixed;
+            display: flex;
+            top: 0;
+            left: 0;
+            right: 0;
+            background:#607d8b;
+            justify-content: center;
+        }
+        .content,.push{
+            margin: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 2px;
+            border:none;
+            padding-left: 10px;color: white;
+            
+            box-shadow: 0 0 4px black;
+        }
+        .push{
+            padding: 0 10px 0 10px;
+            color: black;
+            background: white;
+            transition: 1s ease all;
+        }
+        .push:active{
+            background: rgba(255,255,255,0.6);
+            box-shadow: 0 0 2px black;
+        }
+    </style>
+     <script>
+        function StackElement(data,w,h){
+            this._data = data;
+            this.x = 0;
+            this.y = 0;
+            this.width = w;
+            this.height = h;
+            this.scale = 0.01;
+            this.tmpy = -100;
+            this.draw = function(){
+                fill(255,255,255);
+                rect(this.x,this.y,this.width,this.height);
+                fill(0,0,0);
+                text(data,this.x+(this.width)/2-data.length*4,this.y+(this.height)/2+4)
+                scale(1);
+            }
+            this.setXY = function(x,y){
+                this.x = x;
+                this.y = y;
+            }
+            this.log = function(){
+                console.log("width",this.width,"height",this.height,"x",this.x,"y",this.y);
+            }
+            
+            
+        }
+        //stack
+        function Stack(x,y,w,h){
+            this.elms = new Array();
+            this.popped = new Array();
+            this.x = x;
+            this.y = y;
+            this.width = w;
+            this.height = h;
+            this.padding = 20;
+            this.elementGap = 5;
+            this.elementHeight = 50;
+            this.overflow = 0;
+            this.underflow = 0;
+            this.red = false;
+            this.currentTop = this.y + this.height -this.padding-this.elementHeight;
+            this.currentLeft = this.x + this.padding;
+            this.addElement = function(){
+                this.currentTop -= (this.elementHeight+this.elementGap);
+            }
+            this.removeElement = function(){
+                this.currentTop += (this.elementHeight+this.elementGap*2);
+            }
+            this.draw = function(x,y,w,h){
+                if(this.red){
+                 
+             fill(255,10,16);
+             
+             stroke(255,10,16);
+             }else{
+             fill(0,150,136);
+             stroke(0,150,136);
+             }
+             rect(this.x,this.y,this.width,this.height);
+             for(i=0;i<this.elms.length;i++){
+                this.elms[i].x = this.elms[i].x<this.currentLeft?this.elms[i].x+5:this.currentLeft;
+                 this.elms[i].draw();
+             }
+
+             for(i=0;i<this.popped.length;i++){
+                 this.popped[i].y-=15;
+                 this.popped[i].draw();
+             }
+             if(this.overflow>0){
+                 text("Stack overflow",this.x,this.y - 30);
+                 this.overflow-=2;
+                 this.red = true;
+             }
+             else{
+                 this.red=false;
+
+             
+             if(this.underflow>0){
+                text("Stack underflow",this.x,this.y +this.height+30);
+                this.underflow-=2;
+                this.red = true;
+             }else{
+                 this.red=false;
+             }
+             }
+             
+            }
+            this.push = function(elm){
+                if(this.elms.length<6){
+                elm.y = this.currentTop;
+                elm.width = (this.width - 2*this.padding);
+                elm.height = this.elementHeight;
+                this.currentTop -=this.elementGap;
+                elm.log();
+                this.elms.push(elm);
+                this.addElement();
+                }else{
+                    this.overflow = 100;
+                }
+            }
+            this.pop = function(){
+                if(this.elms.length>0){
+                  this.removeElement()
+                  this.popped.push( this.elms.pop());
+                }else{
+                    this.underflow = 100;
+                }
+                for(i=0;i<this.popped.length;i++){
+                 if(this.popped[i].y<=-150){
+                    this.popped.splice(i,1);
+                 }
+             }
+            }
+        }
+        var stackWidth = 200;
+        var stackHeight = 400;
+        var offsetX = 0;
+        var offsetY = 50;
+        var stackX;
+        var stackY;
+        var width;
+        var height;
+        var stack ;
+        var el;
+        function setup(){
+            width = window.innerWidth;
+            height = window.innerHeight;
+            createCanvas(width,height);
+            stackX = width/2-stackWidth/2 + offsetX;
+            stackY = height/2-stackHeight/2 + offsetY;
+            el = new StackElement("aba",100,50)
+            el.setXY(23,45)
+            stack = new Stack(stackX,stackY,stackWidth,stackHeight);
+        }
+        function draw(){
+             clear();
+             stack.draw();
+        }
+        var btn = document.getElementById('push');
+        var pop = document.getElementById('pop');
+        btn.onclick = function(e){
+                stack.push(new StackElement(parseInt(Math.random()*100)+"",0,0));
+        }
+        pop.onclick = function(e){
+            stack.pop();
+        }
+
+    </script>
+</body>
+</html>
